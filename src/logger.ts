@@ -6,7 +6,7 @@ import * as winston from "winston";
 import { config } from "./config";
 
 export const logger = winston.createLogger({
-  level: config.LOG_LEVEL, // TODO: Make this configurable
+  level: config.LOG_LEVEL,
   transports: [new winston.transports.Console()]
 });
 
