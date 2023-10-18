@@ -1,0 +1,15 @@
+.idea/
+.vscode/
+lib/
+dist/
+node_modules
+coverage
+yarn-error.log
+package-lock.json
+.vscode/settings.json
+dump.rdb
+src/generated
+.env
+.DS_Store
+k6example/libs
+.eslintcache
