@@ -1,8 +1,8 @@
 /* eslint-disable sort-keys */
 import * as express from "express";
 import * as cookieParser from "cookie-parser";
-import { logger } from "./logger";
 import { config } from "./config";
+import { createFormWithNpg } from "./handler/retrieve-fields";
 
 // eslint-disable-next-line max-lines-per-function
 export const newExpressApp: () => Promise<Express.Application> = async () => {
@@ -29,10 +29,10 @@ export const newExpressApp: () => Promise<Express.Application> = async () => {
     next();
   });
 
-  app.get("/", async (_req, res) => {
-    logger.info("First endpoint");
-    res.status(200).send("Hello word!!");
-  });
+  app.get(
+    "/webview-payment-wallet/v1/wallets/:walletId/fields",
+    createFormWithNpg
+  );
 
   return app;
 };
