@@ -5,7 +5,11 @@ import { formatValidationErrors } from "io-ts-reporters";
 
 const Config = t.partial({
   ENDPOINT_DELAY: t.number,
-  LOG_LEVEL: t.string
+  LOG_LEVEL: t.string,
+  NPG_API_KEY: t.string,
+  NPG_CANCEL_URL: t.string,
+  NPG_NOTIFICATION_URL: t.string,
+  NPG_RESULT_URL: t.string
 });
 
 export type Config = t.TypeOf<typeof Config>;
@@ -19,7 +23,11 @@ const decodeEnv = (
   env: Record<string, string | undefined>
 ): Record<string, unknown> => ({
   ENDPOINT_DELAY: getNumber(env, "ENDPOINT_DELAY"),
-  LOG_LEVEL: env.LOG_LEVEL
+  LOG_LEVEL: env.LOG_LEVEL,
+  NPG_API_KEY: env.NPG_API_KEY,
+  NPG_CANCEL_URL: env.NPG_CANCEL_URL,
+  NPG_NOTIFICATION_URL: env.NPG_NOTIFICATION_URL,
+  NPG_RESULT_URL: env.NPG_RESULT_URL
 });
 
 const getConfig = (): Config =>
