@@ -11,6 +11,9 @@ import { Field } from "../generated/wallet/Field";
 import { ProblemJson } from "../generated/wallet/ProblemJson";
 
 const NPG_API_KEY = config.NPG_API_KEY;
+const NPG_NOTIFICATION_URL = config.NPG_NOTIFICATION_URL;
+const NPG_CANCEL_URL = config.NPG_CANCEL_URL;
+const NPG_RESULT_URL = config.NPG_RESULT_URL;
 
 export const internalServerError = (): ProblemJson => ({
   detail: "Internal Server Error",
@@ -47,12 +50,12 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
     paymentSession: {
       actionType: "VERIFY",
       amount: "0",
-      cancelUrl: "http://payment-wallet.pagopa.it/cancel",
+      cancelUrl: NPG_CANCEL_URL,
       captureType: "IMPLICIT",
       language: "ITA",
-      notificationUrl: "http://payment-wallet.pagopa.it",
+      notificationUrl: NPG_NOTIFICATION_URL,
       paymentService: "CARDS",
-      resultUrl: "http://payment-wallet.pagopa.it/esito"
+      resultUrl: NPG_RESULT_URL
     },
     version: "2"
   });
