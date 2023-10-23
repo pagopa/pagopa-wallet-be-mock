@@ -20,7 +20,7 @@
     "clean:dist": "rimraf dist",
     "clean:yaml-files": "rimraf generated/yaml-file/*.yaml",
     "generate": "npm-run-all -s generate:ts-from-yaml:*",
-    "generate:ts-from-yaml:wallet": "shx rm -rf src/generated/wallet && shx mkdir -p src/generated/wallet && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/7c4eec5f4e70c922968d96872215846633947d56/src/domains/wallet-app/api/webview-payment-wallet/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet"
+    "generate:ts-from-yaml:wallet": "shx rm -rf src/generated/wallet && shx mkdir -p src/generated/wallet && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/ceb58edb1d62286db39b8bc319a282ebfe9d5d81/src/domains/wallet-app/api/webview-payment-wallet/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet"
   },
   "devDependencies": {
     "@pagopa/eslint-config": "^1.3.1",

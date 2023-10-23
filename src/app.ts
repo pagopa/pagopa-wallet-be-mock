@@ -29,8 +29,8 @@ export const newExpressApp: () => Promise<Express.Application> = async () => {
     next();
   });
 
-  app.get(
-    "/webview-payment-wallet/v1/wallets/:walletId/fields",
+  app.post(
+    "/webview-payment-wallet/v1/wallets/:walletId/sessions",
     createFormWithNpg
   );
 
