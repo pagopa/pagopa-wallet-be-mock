@@ -6,7 +6,7 @@ import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import { logger } from "../logger";
 import { config } from "../config";
-import { WalletFieldsResponse } from "../generated/wallet/WalletFieldsResponse";
+import { SessionWalletCreateResponse } from "../generated/wallet/SessionWalletCreateResponse";
 import { Field } from "../generated/wallet/Field";
 import { ProblemJson } from "../generated/wallet/ProblemJson";
 
@@ -22,10 +22,10 @@ export const internalServerError = (): ProblemJson => ({
 
 export const buildWalletFieldsResponse = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sessionResponse: any
-): WalletFieldsResponse => ({
-  cardFormFields: sessionResponse.fields as ReadonlyArray<Field>,
-  sessionId: sessionResponse.sessionId
+  sessionResponse: { readonly jsonResponse: any; readonly orderId: string }
+): SessionWalletCreateResponse => ({
+  cardFormFields: sessionResponse.jsonResponse.fields as ReadonlyArray<Field>,
+  orderId: sessionResponse.orderId
 });
 
 export const createFormWithNpg: RequestHandler = async (_req, res) => {
@@ -40,6 +40,7 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
   );
 
   const orderId = uuid().substring(0, 15);
+
   const postData = JSON.stringify({
     merchantUrl: `${_req.protocol}://${_req.get("Host")}`,
     order: {
@@ -82,9 +83,9 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
     ),
     TE.map(resp => {
       pipe(
-        resp,
+        { jsonResponse: resp, orderId },
         buildWalletFieldsResponse,
-        WalletFieldsResponse.decode,
+        SessionWalletCreateResponse.decode,
         E.mapLeft(e => {
           logger.error(formatValidationErrors(e));
           return res.status(500).send(internalServerError());
