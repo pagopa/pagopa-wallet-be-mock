@@ -3,7 +3,7 @@ import * as express from "express";
 import * as cookieParser from "cookie-parser";
 import { config } from "./config";
 import { createFormWithNpg } from "./handler/retrieve-fields";
-import { validations } from "./handler/validations";
+import { confirmPaymentFromNpg } from "./handler/validations";
 
 // eslint-disable-next-line max-lines-per-function
 export const newExpressApp: () => Promise<Express.Application> = async () => {
@@ -37,7 +37,7 @@ export const newExpressApp: () => Promise<Express.Application> = async () => {
 
   app.post(
     "/webview-payment-wallet/v1/wallets/:walletId/validations",
-    validations
+    confirmPaymentFromNpg
   );
 
   return app;

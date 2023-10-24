@@ -1,91 +1,84 @@
-import { RequestHandler } from "express-serve-static-core";
-import { v4 as uuid } from "uuid";
 import { pipe } from "fp-ts/lib/function";
-import { formatValidationErrors } from "io-ts-reporters";
+import { v4 as uuid } from "uuid";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
-import { logger } from "../logger";
+import { RequestHandler } from "express";
 import { config } from "../config";
+import { logger } from "../logger";
+import { getSessionIdCookie } from "../utils";
 import { WalletVerifyRequestsResponse } from "../generated/wallet/WalletVerifyRequestsResponse";
-import { ProblemJson } from "../generated/wallet/ProblemJson";
+import { WalletVerifyRequestCardDetails } from "../generated/wallet/WalletVerifyRequestCardDetails";
 
 const NPG_API_KEY = config.NPG_API_KEY;
 
-const npgEnvironment =
-  "https://stg-ta.nexigroup.com/api/phoenix-0.0/psp/api/v1";
+const encode = (str: string): string =>
+  Buffer.from(str, "binary").toString("base64");
 
-export const internalServerError = (): ProblemJson => ({
-  detail: "Internal Server Error",
-  title: "Invalid npg body response"
-});
-
-export const buildWalletVerify = (verifyResponse: {
-  readonly jsonResponse: { readonly state: string; readonly url: string };
+export const createSuccessValidationResponseEntityFromNPG = (confirmResponse: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly jsonResponse: any;
+  readonly origin: string;
   readonly sessionId: string;
 }): WalletVerifyRequestsResponse => ({
   details: {
-    iframeUrl: verifyResponse.jsonResponse.url,
+    iframeUrl:
+      confirmResponse.origin +
+      "/gdi-check#gdiIframeUrl=" +
+      encode(confirmResponse.jsonResponse.fieldSet.fields[0].src),
     type: "CARD"
-  },
-  sessionId: verifyResponse.sessionId
+  } as WalletVerifyRequestCardDetails,
+  sessionId: confirmResponse.sessionId
 });
 
-interface IReq {
-  readonly walletId: string;
-}
+export const confirmPaymentFromNpg: RequestHandler = async (_req, res) => {
+  const sessionId = getSessionIdCookie(_req);
+  const origin = _req.headers.origin as string;
 
-export const validations: RequestHandler<IReq> = async (req, res) => {
-  const { walletId } = req.params;
-  if (walletId === null) {
-    logger.error("Missing walletId param!");
-    return res.status(400).send("Missing walletId param!");
-  }
+  const postData = JSON.stringify({
+    amount: "0",
+    sessionId
+  });
 
   logger.info(
-    `[Invoke NPG for create form using walletId: ${req.params.walletId}] - Return success case`
+    `[Invoke NPG confirm payment with npg-session id: ${sessionId}] - Return success case`
   );
 
-  // maybe the same corraleation id created on /sessions needs to be used
   const correlationId = uuid();
-
-  // how to retrieve it?
-  // const sessionId = "";
-
-  const fetchConfirm = await fetch(`${npgEnvironment}/build/confirm_payment`, {
-    body: JSON.stringify({
-      amount: "1",
-      sessionId: "to valuate"
-    }),
-    headers: {
-      "Content-Type": "application/json",
-      "Correlation-Id": correlationId,
-      "X-Api-key": NPG_API_KEY
-    },
-    method: "POST"
-  } as RequestInit);
+  const response = await fetch(
+    "https://stg-ta.nexigroup.com/api/phoenix-0.0/psp/api/v1/build/confirm_payment",
+    {
+      body: postData,
+      headers: {
+        "Content-Type": "application/json",
+        "Correlation-Id": correlationId,
+        "X-Api-key": NPG_API_KEY
+      },
+      method: "POST"
+    } as RequestInit
+  );
 
   await pipe(
     TE.tryCatch(
-      async (): Promise<{ readonly state: "string"; readonly url: string }> =>
-        await fetchConfirm.json(),
+      async () => response.json(),
       _e => {
-        logger.error("Error invoking npg order confirm");
+        logger.error("Error invoking npg order build");
       }
     ),
-    TE.map(resp => {
+    TE.map(jsonResponse =>
       pipe(
-        { jsonResponse: resp, sessionId: "" },
-        buildWalletVerify,
+        // eslint-disable-next-line sort-keys
+        { jsonResponse, origin, sessionId },
+        createSuccessValidationResponseEntityFromNPG,
         WalletVerifyRequestsResponse.decode,
-        E.mapLeft(e => {
-          logger.error(formatValidationErrors(e));
-          return res.status(500).send(internalServerError());
-        }),
-        E.map(val => {
-          res.status(fetchConfirm.status).send(val);
-        })
-      );
-    }),
-    TE.mapLeft(() => res.status(500).send(internalServerError()))
+        E.fold(
+          () => {
+            logger.error("Error while invoke NPG unexpected body");
+            res.status(response.status).send(jsonResponse);
+          },
+          responseBody => res.status(response.status).send(responseBody)
+        )
+      )
+    ),
+    TE.mapLeft(() => res.status(response.status).send())
   )();
 };
