@@ -36,7 +36,7 @@ export const newExpressApp: () => Promise<Express.Application> = async () => {
   );
 
   app.post(
-    "/webview-payment-wallet/v1/wallets/:walletId/validations",
+    "/webview-payment-wallet/v1/wallets/:walletId/sessions/:orderId/validations",
     confirmPaymentFromNpg
   );
 

@@ -17,23 +17,18 @@ const encode = (str: string): string =>
 export const createSuccessValidationResponseEntityFromNPG = (confirmResponse: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly jsonResponse: any;
-  readonly origin: string;
-  readonly sessionId: string;
+  readonly orderId: string;
 }): WalletVerifyRequestsResponse => ({
   details: {
-    iframeUrl:
-      confirmResponse.origin +
-      "/gdi-check#gdiIframeUrl=" +
-      encode(confirmResponse.jsonResponse.fieldSet.fields[0].src),
+    iframeUrl: encode(confirmResponse.jsonResponse.fieldSet.fields[0].src),
     type: "CARD"
   } as WalletVerifyRequestCardDetails,
-  sessionId: confirmResponse.sessionId
+  orderId: confirmResponse.orderId
 });
 
 export const confirmPaymentFromNpg: RequestHandler = async (_req, res) => {
   const sessionId = getSessionIdCookie(_req);
-  const origin = _req.headers.origin as string;
-
+  const orderId = _req.params.orderId;
   const postData = JSON.stringify({
     amount: "0",
     sessionId
@@ -56,7 +51,6 @@ export const confirmPaymentFromNpg: RequestHandler = async (_req, res) => {
       method: "POST"
     } as RequestInit
   );
-
   await pipe(
     TE.tryCatch(
       async () => response.json(),
@@ -67,7 +61,7 @@ export const confirmPaymentFromNpg: RequestHandler = async (_req, res) => {
     TE.map(jsonResponse =>
       pipe(
         // eslint-disable-next-line sort-keys
-        { jsonResponse, origin, sessionId },
+        { jsonResponse, orderId },
         createSuccessValidationResponseEntityFromNPG,
         WalletVerifyRequestsResponse.decode,
         E.fold(
