@@ -9,6 +9,7 @@ import { config } from "../config";
 import { SessionWalletCreateResponse } from "../generated/wallet/SessionWalletCreateResponse";
 import { Field } from "../generated/wallet/Field";
 import { ProblemJson } from "../generated/wallet/ProblemJson";
+import { setSessionIdCookie } from "../utils";
 
 const NPG_API_KEY = config.NPG_API_KEY;
 const NPG_NOTIFICATION_URL = config.NPG_NOTIFICATION_URL;
@@ -91,6 +92,7 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
           return res.status(500).send(internalServerError());
         }),
         E.map(val => {
+          setSessionIdCookie(res, resp.sessionId);
           res.status(response.status).send(val);
         })
       );
