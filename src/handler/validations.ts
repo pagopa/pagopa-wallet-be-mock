@@ -7,7 +7,10 @@ import { config } from "../config";
 import { logger } from "../logger";
 import { getSessionIdCookie } from "../utils";
 import { WalletVerifyRequestsResponse } from "../generated/wallet/WalletVerifyRequestsResponse";
-import { WalletVerifyRequestCardDetails } from "../generated/wallet/WalletVerifyRequestCardDetails";
+import {
+  TypeEnum,
+  WalletVerifyRequestCardDetails
+} from "../generated/wallet/WalletVerifyRequestCardDetails";
 
 const NPG_API_KEY = config.NPG_API_KEY;
 
@@ -21,7 +24,7 @@ export const createSuccessValidationResponseEntityFromNPG = (confirmResponse: {
 }): WalletVerifyRequestsResponse => ({
   details: {
     iframeUrl: encode(confirmResponse.jsonResponse.fieldSet.fields[0].src),
-    type: "CARD"
+    type: "CARD" as TypeEnum
   } as WalletVerifyRequestCardDetails,
   orderId: confirmResponse.orderId
 });
