@@ -25,8 +25,10 @@ export const buildWalletFieldsResponse = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sessionResponse: { readonly jsonResponse: any; readonly orderId: string }
 ): SessionWalletCreateResponse => ({
-  cardFormFields: sessionResponse.jsonResponse.fields as ReadonlyArray<Field>,
-  orderId: sessionResponse.orderId
+  orderId: sessionResponse.orderId,
+  sessionData: {
+    cardFormFields: sessionResponse.jsonResponse.fields as ReadonlyArray<Field>
+  }
 });
 
 export const createFormWithNpg: RequestHandler = async (_req, res) => {
