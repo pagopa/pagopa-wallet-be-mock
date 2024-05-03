@@ -5,6 +5,7 @@ import { config } from "./config";
 import { createFormWithNpg } from "./handler/retrieve-fields";
 import { confirmPaymentFromNpg } from "./handler/validations";
 import { getSessionWalletInformation } from "./handler/get-session-information";
+import { getPsps } from "./handler/get-psps";
 
 // eslint-disable-next-line max-lines-per-function
 export const newExpressApp: () => Promise<Express.Application> = async () => {
@@ -45,6 +46,8 @@ export const newExpressApp: () => Promise<Express.Application> = async () => {
     "/webview-payment-wallet/v1/wallets/:walletId/sessions/:orderId",
     getSessionWalletInformation
   );
+
+  app.get("/webview-payment-wallet/v1/wallets/:walletId/psps", getPsps);
 
   return app;
 };

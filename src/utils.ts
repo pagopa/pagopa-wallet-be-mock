@@ -24,3 +24,6 @@ export const getSessionIdCookie: (req: express.Request) => string = req =>
     maybeGetSessionIdCookie(req),
     O.getOrElse(() => "")
   );
+
+export const waitTime: (timeMillis: number) => Promise<void> = time =>
+  new Promise(resolve => setTimeout(() => resolve(), time));
