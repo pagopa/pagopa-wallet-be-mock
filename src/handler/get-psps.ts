@@ -24,7 +24,7 @@ export const getPsps: RequestHandler = async (_req, res) => {
         onUs: false,
         paymentMethod: "paypal",
         primaryCiIncurredFee: 0,
-        pspBusinessName: "Business Name",
+        pspBusinessName: "Business Name 1",
         taxPayerFee: 0,
         touchpoint: "IO"
       },
