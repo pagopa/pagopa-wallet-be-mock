@@ -14,7 +14,7 @@ export const getPsps: RequestHandler = async (_req, res) => {
     bundleOptions: [
       {
         abi: "32532",
-        bundleDescription: "Bundel description",
+        bundleDescription: "Bundle description 1",
         bundleName: "Bundle name 1",
         idBrokerPsp: "123456",
         idBundle: "123",
