@@ -24,7 +24,7 @@ export const createSuccessValidationResponseEntityFromNPG = (confirmResponse: {
 }): WalletVerifyRequestsResponse => ({
   details: {
     iframeUrl: encode(confirmResponse.jsonResponse.fieldSet.fields[0].src),
-    type: "CARD" as TypeEnum
+    type: TypeEnum.CARDS
   } as WalletVerifyRequestCardDetails,
   orderId: confirmResponse.orderId
 });
