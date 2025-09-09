@@ -45,7 +45,7 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
   const orderId = uuid().substring(0, 15);
 
   const postData = JSON.stringify({
-    merchantUrl: `${_req.protocol}://${_req.get("Host")}`,
+    merchantUrl: `http://localhost:1234`,
     order: {
       amount: "0",
       currency: "EUR",
@@ -59,12 +59,16 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
       language: "ITA",
       notificationUrl: NPG_NOTIFICATION_URL,
       paymentService: "CARDS",
+      recurrence: {
+        action: "CONTRACT_CREATION",
+        contractId: orderId,
+        contractType: "CIT"
+      },
       resultUrl: NPG_RESULT_URL
     },
     version: "2"
   });
   const correlationId = uuid();
-
   const response = await fetch(
     "https://stg-ta.nexigroup.com/api/phoenix-0.0/psp/api/v1/orders/build",
     {
@@ -79,7 +83,11 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
   );
   await pipe(
     TE.tryCatch(
-      async () => response.json(),
+      async () => {
+        const json = await response.json();
+        logger.info(`NPG response body: ${JSON.stringify(json)}`);
+        return json;
+      },
       _e => {
         logger.error("Error invoking npg order build");
       }
