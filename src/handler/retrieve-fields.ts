@@ -59,17 +59,16 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
       language: "ITA",
       notificationUrl: NPG_NOTIFICATION_URL,
       paymentService: "CARDS",
-      resultUrl: NPG_RESULT_URL,
       recurrence: {
         action: "CONTRACT_CREATION",
         contractId: orderId,
         contractType: "CIT"
       },
+      resultUrl: NPG_RESULT_URL
     },
     version: "2"
   });
   const correlationId = uuid();
-  logger.info(`Invoking NPG with api key ${NPG_API_KEY}`);
   const response = await fetch(
     "https://stg-ta.nexigroup.com/api/phoenix-0.0/psp/api/v1/orders/build",
     {
@@ -87,7 +86,7 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
       async () => {
         const json = await response.json();
         logger.info(`NPG response body: ${JSON.stringify(json)}`);
-       return  json;
+        return json;
       },
       _e => {
         logger.error("Error invoking npg order build");
