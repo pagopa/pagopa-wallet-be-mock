@@ -85,8 +85,8 @@ const fetchNpgSdkSriHash = pipe(
   ),
   TE.chain(response => TE.tryCatch(() => response.text(), toError)),
   TE.map(body => {
-    // eslint-disable-next-line functional/immutable-data
     logger.info(`NPG returned SRI hash response: ${body}`);
+    // eslint-disable-next-line functional/immutable-data
     cache[NPG_SDK_SRI_HASH_CACHE_KEY] = body;
     return body;
   })
