@@ -9,7 +9,8 @@ const Config = t.partial({
   NPG_API_KEY: t.string,
   NPG_CANCEL_URL: t.string,
   NPG_NOTIFICATION_URL: t.string,
-  NPG_RESULT_URL: t.string
+  NPG_RESULT_URL: t.string,
+  NPG_SDK_TAMPER_HASH: t.boolean
 });
 
 export type Config = t.TypeOf<typeof Config>;
@@ -27,7 +28,8 @@ const decodeEnv = (
   NPG_API_KEY: env.NPG_API_KEY,
   NPG_CANCEL_URL: env.NPG_CANCEL_URL,
   NPG_NOTIFICATION_URL: env.NPG_NOTIFICATION_URL,
-  NPG_RESULT_URL: env.NPG_RESULT_URL
+  NPG_RESULT_URL: env.NPG_RESULT_URL,
+  NPG_SDK_TAMPER_HASH: env.NPG_SDK_TAMPER_HASH === "true"
 });
 
 const getConfig = (): Config =>

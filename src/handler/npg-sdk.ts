@@ -9,6 +9,7 @@ import { config } from "../config";
 import { logger } from "../logger";
 
 const NPG_API_KEY = config.NPG_API_KEY ?? "";
+const NPG_SDK_TAMPER_HASH = config.NPG_SDK_TAMPER_HASH ?? false;
 const NPG_SDK_URL = "https://stg-ta.nexigroup.com/monetaweb/resources/hfsdk.js";
 const NPG_SDK_SRI_HASH =
   "https://stg-ta.nexigroup.com/api/phoenix-0.0/psp/api/v1/build/integrity";
@@ -104,14 +105,17 @@ export const npgGetSdkIntegrity: RequestHandler = (_req, res) => {
       body => JSON.parse(body).integrity,
       () => new Error("Empty response body for NPG SDK SRI hash")
     ),
-    TE.map(body =>
+    TE.map(body => {
+      const integrity = `${JSON.parse(body).integrity}${
+        NPG_SDK_TAMPER_HASH ? "-tampered" : ""
+      }`;
       res
         .status(200)
         .set(contentTypeHeaderKey, "application/json")
         .send({
-          integrityHash: JSON.parse(body).integrity
-        })
-    ),
+          integrityHash: integrity
+        });
+    }),
     TE.mapLeft(error => {
       logger.error("Error retrieving NPG SDK SRI hash ", error);
       return res.status(502).send(error.message);
