@@ -45,8 +45,10 @@ const fetchNpgSdk = pipe(
 );
 
 export const getNpgSDK: RequestHandler = (_req, res) => {
+  const cachedBody = cache[NPG_SDK_CACHE_KEY];
+  logger.info(`Retrieving NPG SDK, cache hit: ${cachedBody !== undefined}`);
   void pipe(
-    O.fromNullable(cache[NPG_SDK_CACHE_KEY]),
+    O.fromNullable(cachedBody),
     O.fold(() => fetchNpgSdk, TE.right),
     TE.map(body =>
       res
@@ -83,17 +85,25 @@ const fetchNpgSdkSriHash = pipe(
   ),
   TE.chain(response => TE.tryCatch(() => response.text(), toError)),
   TE.map(body => {
-    logger.info(`NPG returned SRI hash response: ${body}`);
     // eslint-disable-next-line functional/immutable-data
+    logger.info(`NPG returned SRI hash response: ${body}`);
     cache[NPG_SDK_SRI_HASH_CACHE_KEY] = body;
     return body;
   })
 );
 
 export const npgGetSdkIntegrity: RequestHandler = (_req, res) => {
+  const cachedBody = cache[NPG_SDK_SRI_HASH_CACHE_KEY];
+  logger.info(
+    `Retrieving NPG SDK SRI hash, cache hit: ${cachedBody !== undefined}`
+  );
   void pipe(
-    O.fromNullable(cache[NPG_SDK_SRI_HASH_CACHE_KEY]),
+    O.fromNullable(cachedBody),
     O.fold(() => fetchNpgSdkSriHash, TE.right),
+    TE.filterOrElse(
+      body => JSON.parse(body).integrity,
+      () => new Error("Empty response body for NPG SDK SRI hash")
+    ),
     TE.map(body =>
       res
         .status(200)
