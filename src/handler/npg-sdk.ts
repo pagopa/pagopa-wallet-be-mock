@@ -5,11 +5,11 @@ import * as TE from "fp-ts/lib/TaskEither";
 import fetch from "node-fetch";
 import { RequestHandler } from "express";
 import { v4 as uuid } from "uuid";
+import * as express from "express";
 import { config } from "../config";
 import { logger } from "../logger";
 
 const NPG_API_KEY = config.NPG_API_KEY ?? "";
-const NPG_SDK_TAMPER_HASH = config.NPG_SDK_TAMPER_HASH ?? false;
 const NPG_SDK_URL = "https://stg-ta.nexigroup.com/monetaweb/resources/hfsdk.js";
 const NPG_SDK_SRI_HASH =
   "https://stg-ta.nexigroup.com/api/phoenix-0.0/psp/api/v1/build/integrity";
@@ -66,6 +66,18 @@ export const getNpgSDK: RequestHandler = (_req, res) => {
 
 const correlationId = uuid();
 
+const shouldTamperSriHash: (req: express.Request) => boolean = req => {
+  logger.info(`Request cookies: [${JSON.stringify(req.cookies)}]`);
+  return pipe(
+    O.fromNullable(req.cookies?.tamperSriHash),
+    O.map<string, boolean>(cookie => {
+      logger.info(`Request tamper SRI hash cookie: [${cookie}]`);
+      return cookie === "true";
+    }),
+    O.getOrElse<boolean>(() => false)
+  );
+};
+
 const fetchNpgSdkSriHash = pipe(
   TE.tryCatch(() => {
     logger.info("Fetching NPG SDK SRI hash from Nexi server");
@@ -93,11 +105,12 @@ const fetchNpgSdkSriHash = pipe(
   })
 );
 
-export const npgGetSdkIntegrity: RequestHandler = (_req, res) => {
+export const npgGetSdkIntegrity: RequestHandler = (req, res) => {
   const cachedBody = cache[NPG_SDK_SRI_HASH_CACHE_KEY];
   logger.info(
     `Retrieving NPG SDK SRI hash, cache hit: ${cachedBody !== undefined}`
   );
+  const tamperSriHash = shouldTamperSriHash(req);
   void pipe(
     O.fromNullable(cachedBody),
     O.fold(() => fetchNpgSdkSriHash, TE.right),
@@ -107,7 +120,7 @@ export const npgGetSdkIntegrity: RequestHandler = (_req, res) => {
     ),
     TE.map(body => {
       const integrity = `${JSON.parse(body).integrity}${
-        NPG_SDK_TAMPER_HASH ? "-tampered" : ""
+        tamperSriHash ? "-tampered" : ""
       }`;
       res
         .status(200)
