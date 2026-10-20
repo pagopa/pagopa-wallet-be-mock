@@ -86,15 +86,7 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
 
   await pipe(
     TE.tryCatch(
-      async () => {
-        const responseBody = await response.json();
-        logger.info(
-          `NPG order build http code: ${
-            response.status
-          }, response: ${JSON.stringify(responseBody)}`
-        );
-        return responseBody;
-      },
+      async () => await response.json(),
       _e => {
         logger.error("Error invoking npg order build");
       }
