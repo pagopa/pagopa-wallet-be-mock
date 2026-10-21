@@ -6,6 +6,7 @@ import { createFormWithNpg } from "./handler/retrieve-fields";
 import { confirmPaymentFromNpg } from "./handler/validations";
 import { getSessionWalletInformation } from "./handler/get-session-information";
 import { getPsps } from "./handler/get-psps";
+import { getNpgSDK, npgGetSdkIntegrity } from "./handler/npg-sdk";
 
 // eslint-disable-next-line max-lines-per-function
 export const newExpressApp: () => Promise<Express.Application> = async () => {
@@ -48,6 +49,10 @@ export const newExpressApp: () => Promise<Express.Application> = async () => {
   );
 
   app.get("/webview-payment-wallet/v1/wallets/:walletId/psps", getPsps);
+
+  // NPG SDK proxy + SRI hash
+  app.get("/npg/sdk/hfsdk.js", getNpgSDK);
+  app.get("/npg/sdk/hfsdk.integrity.json", npgGetSdkIntegrity);
 
   return app;
 };

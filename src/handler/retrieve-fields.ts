@@ -43,6 +43,7 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
   );
 
   const orderId = uuid().substring(0, 15);
+  const contractId = uuid().substring(0, 15);
 
   const postData = JSON.stringify({
     merchantUrl: `${_req.protocol}://${_req.get("Host")}`,
@@ -59,6 +60,11 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
       language: "ITA",
       notificationUrl: NPG_NOTIFICATION_URL,
       paymentService: "CARDS",
+      recurrence: {
+        action: "CONTRACT_CREATION",
+        contractId,
+        contractType: "CIT"
+      },
       resultUrl: NPG_RESULT_URL
     },
     version: "2"
@@ -77,9 +83,10 @@ export const createFormWithNpg: RequestHandler = async (_req, res) => {
       method: "POST"
     } as RequestInit
   );
+
   await pipe(
     TE.tryCatch(
-      async () => response.json(),
+      async () => await response.json(),
       _e => {
         logger.error("Error invoking npg order build");
       }
